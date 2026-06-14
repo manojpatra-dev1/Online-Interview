@@ -1,4 +1,4 @@
-# ⚡ PrepAI — AI Interview Preparation Platform
+# ⚡  — AI Interview Preparation Platform
 
 A full-stack Django + MySQL application powered by Claude AI (Anthropic) that generates
 realistic interview questions, evaluates answers, and provides detailed feedback.
