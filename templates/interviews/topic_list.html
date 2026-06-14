@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Topics — PrepAI{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <h3 class="fw-700 mb-1">Interview Topics</h3>
+      <p class="text-muted mb-0">Choose a topic to start a mock interview session</p>
+    </div>
+  </div>
+
+  <!-- CATEGORY FILTER -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'topic_list' %}" class="btn btn-sm {% if not selected_category %}btn-brand{% else %}btn-outline-brand{% endif %}">All</a>
+    {% for val, label in categories %}
+    <a href="?category={{ val }}" class="btn btn-sm {% if selected_category == val %}btn-brand{% else %}btn-outline-brand{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- TOPICS GRID -->
+  <div class="row g-3">
+    {% for topic in topics %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card p-4 h-100" style="transition:all 0.2s;" onmouseover="this.style.borderColor='{{ topic.color }}';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='';this.style.transform=''">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div style="width:48px;height:48px;border-radius:12px;background:{{ topic.color }}20;color:{{ topic.color }};display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">
+            <i class="bi {{ topic.icon }}"></i>
+          </div>
+          <div>
+            <h6 class="mb-0 fw-600">{{ topic.name }}</h6>
+            <span class="text-muted" style="font-size:0.75rem;">{{ topic.get_category_display }}</span>
+          </div>
+        </div>
+        <p class="text-muted mb-3" style="font-size:0.85rem;line-height:1.5;">{{ topic.description }}</p>
+        <a href="{% url 'start_session' topic.slug %}" class="btn btn-brand w-100 mt-auto">
+          <i class="bi bi-play-fill me-1"></i>Start Interview
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+      <i class="bi bi-collection" style="font-size:3rem;"></i>
+      <p class="mt-3">No topics found for this category.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

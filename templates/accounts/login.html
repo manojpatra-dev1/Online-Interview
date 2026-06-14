@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Login — PrepAI{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:420px">
+  <div class="text-center mb-4">
+    <div class="mb-3" style="font-size:2.5rem">⚡</div>
+    <h2 class="fw-700">Welcome back</h2>
+    <p class="text-muted">Login to continue your interview prep</p>
+  </div>
+  <div class="card p-4">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" placeholder="Username" autofocus required>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Password" required>
+      </div>
+      <button type="submit" class="btn btn-brand w-100 py-2">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+      </button>
+    </form>
+    <p class="text-center text-muted mt-3 mb-0" style="font-size:0.9rem;">
+      Don't have an account? <a href="{% url 'register' %}" class="text-brand">Sign up free</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

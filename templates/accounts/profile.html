@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — PrepAI{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- PROFILE CARD -->
+    <div class="col-md-4">
+      <div class="card p-4 text-center">
+        <div class="mb-3" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--accent));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto;">
+          {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+        </div>
+        <h5 class="mb-0">{{ user.get_full_name|default:user.username }}</h5>
+        <p class="text-muted small">@{{ user.username }}</p>
+        <p class="text-muted small">{{ user.email }}</p>
+        <hr>
+        <div class="row text-center g-2">
+          <div class="col-4">
+            <div class="stat-value" style="font-size:1.4rem;">{{ profile.total_sessions }}</div>
+            <div class="stat-label" style="font-size:0.7rem;">Sessions</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-value" style="font-size:1.4rem;">{{ profile.completed_sessions }}</div>
+            <div class="stat-label" style="font-size:0.7rem;">Completed</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-value" style="font-size:1.4rem;">{{ profile.average_score }}</div>
+            <div class="stat-label" style="font-size:0.7rem;">Avg Score</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT SESSIONS -->
+      {% if recent_sessions %}
+      <div class="card mt-3 p-3">
+        <h6 class="mb-3 text-muted">Recent Sessions</h6>
+        {% for s in recent_sessions %}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <div class="small fw-500">{{ s.topic.name }}</div>
+            <div class="text-muted" style="font-size:0.75rem;">{{ s.created_at|date:"M d, Y" }}</div>
+          </div>
+          <div>
+            {% if s.overall_score %}
+            <span class="badge badge-brand">{{ s.overall_score }}/10</span>
+            {% else %}
+            <span class="badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);">{{ s.get_status_display }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- EDIT PROFILE -->
+    <div class="col-md-8">
+      <div class="card p-4">
+        <h5 class="mb-4"><i class="bi bi-pencil-square me-2 text-brand"></i>Edit Profile</h5>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">First Name</label>
+              <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name</label>
+              <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" value="{{ form.email.value|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Experience Level</label>
+              <select name="experience_level" class="form-select">
+                {% for val, label in form.fields.experience_level.choices %}
+                <option value="{{ val }}" {% if form.experience_level.value == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Target Role</label>
+              <input type="text" name="target_role" class="form-control" placeholder="e.g., Backend Engineer"
+                     value="{{ form.target_role.value|default:'' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Bio</label>
+              <textarea name="bio" class="form-control" rows="3" placeholder="Tell us about yourself...">{{ form.bio.value|default:'' }}</textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-brand px-4">
+                <i class="bi bi-check-lg me-2"></i>Save Changes
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block title %}Results — {{ session.topic.name }} — PrepAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-big {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1;
+        font-family: var(--mono);
+    }
+
+    .answer-card {
+        border-left: 3px solid;
+    }
+
+    .answer-card.great {
+        border-color: var(--success);
+    }
+
+    .answer-card.good {
+        border-color: var(--accent);
+    }
+
+    .answer-card.avg {
+        border-color: var(--warning);
+    }
+
+    .answer-card.poor {
+        border-color: var(--danger);
+    }
+
+    .model-answer {
+        background: rgba(6, 182, 212, 0.05);
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .readiness-badge {
+        font-size: 1rem;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- HEADER -->
+    <div class="text-center mb-5">
+        <span class="badge badge-brand mb-3 px-3 py-2">
+            Session Complete
+        </span>
+
+        <h2 class="fw-700 mb-1">
+            {{ session.topic.name }} Interview Results
+        </h2>
+
+        <p class="text-muted">
+            {{ session.get_difficulty_display }}
+            ·
+            {{ session.total_questions }} Questions
+            ·
+            {{ session.duration_minutes }} min
+        </p>
+    </div>
+
+    <!-- OVERVIEW CARD -->
+    <div class="card p-4 mb-5">
+        <div class="row g-4 align-items-center">
+
+            <!-- SCORE -->
+            <div class="col-md-3 text-center">
+
+                <div class="score-big"
+                     style="color:
+                     {% if session.overall_score >= 7 %}
+                        var(--success)
+                     {% elif session.overall_score >= 5 %}
+                        var(--warning)
+                     {% else %}
+                        var(--danger)
+                     {% endif %};">
+
+                    {{ session.overall_score }}
+
+                </div>
+
+                <div class="text-muted small mt-1">
+                    out of 10.0
+                </div>
+
+                <div class="readiness-badge badge mt-3 badge-{{ readiness_color }}">
+                    {{ readiness_level }}
+                </div>
+            </div>
+
+            <!-- AI SUMMARY -->
+            <div class="col-md-9">
+
+                <h6 class="text-muted mb-2">
+                    AI Assessment
+                </h6>
+
+                <p class="mb-3" style="line-height:1.7;">
+                    {{ session.ai_summary }}
+                </p>
+
+                <div class="row g-3">
+
+                    <!-- STRENGTHS -->
+                    <div class="col-md-6">
+                        <div class="card p-3"
+                             style="background:rgba(16,185,129,0.05);
+                                    border-color:rgba(16,185,129,0.2)">
+
+                            <div class="small fw-600 mb-2"
+                                 style="color:var(--success);">
+
+                                <i class="bi bi-check-circle me-1"></i>
+                                Strengths
+                            </div>
+
+                            <ul class="mb-0 ps-3">
+                                {% for s in strengths_list %}
+                                    <li class="small mb-1">{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- IMPROVEMENTS -->
+                    <div class="col-md-6">
+                        <div class="card p-3"
+                             style="background:rgba(245,158,11,0.05);
+                                    border-color:rgba(245,158,11,0.2)">
+
+                            <div class="small fw-600 mb-2"
+                                 style="color:var(--warning);">
+
+                                <i class="bi bi-arrow-up-circle me-1"></i>
+                                To Improve
+                            </div>
+
+                            <ul class="mb-0 ps-3">
+                                {% for i in improvements_list %}
+                                    <li class="small mb-1">{{ i }}</li>
+                                {% endfor %}
+                            </ul>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- STUDY RECOMMENDATIONS -->
+    {% if study_recommendations %}
+    <div class="card p-4 mb-5">
+
+        <h5 class="mb-3">
+            <i class="bi bi-book me-2 text-accent"></i>
+            Study Recommendations
+        </h5>
+
+        <div class="d-flex flex-wrap gap-2">
+            {% for rec in study_recommendations %}
+                <span class="badge badge-accent px-3 py-2"
+                      style="font-size:0.85rem;font-weight:500;">
+                    {{ rec }}
+                </span>
+            {% endfor %}
+        </div>
+
+    </div>
+    {% endif %}
+
+    <!-- QUESTION ANSWERS -->
+    <h5 class="fw-600 mb-3">
+        Question-by-Question Breakdown
+    </h5>
+
+    <div class="d-flex flex-column gap-3 mb-5">
+
+        {% for answer in answers %}
+        {% with score=answer.score %}
+
+        <div class="card answer-card p-4
+            {% if score >= 8 %}
+                great
+            {% elif score >= 6 %}
+                good
+            {% elif score >= 4 %}
+                avg
+            {% else %}
+                poor
+            {% endif %}">
+
+            <!-- QUESTION HEADER -->
+            <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+
+                <div>
+
+                    <span class="badge badge-brand type-badge mb-1"
+                          style="font-size:0.65rem;
+                                 text-transform:uppercase;
+                                 letter-spacing:1px;">
+
+                        {{ answer.question.get_question_type_display }}
+
+                    </span>
+
+                    <h6 class="mb-0 fw-600">
+                        Q{{ forloop.counter }}.
+                        {{ answer.question.question_text }}
+                    </h6>
+
+                </div>
+
+                <div class="text-end">
+
+                    <div class="fw-700 fs-5"
+                         style="color:
+                         {% if score >= 7 %}
+                            var(--success)
+                         {% elif score >= 5 %}
+                            var(--warning)
+                         {% else %}
+                            var(--danger)
+                         {% endif %};">
+
+                        {{ score }}/10
+
+                    </div>
+
+                    <div class="small text-muted">
+                        {{ answer.score_label }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- USER ANSWER -->
+            <div class="mb-3">
+
+                <div class="text-muted small fw-500 mb-1">
+                    Your Answer:
+                </div>
+
+                <div class="p-3 rounded"
+                     style="background:rgba(255,255,255,0.03);
+                            font-size:0.9rem;
+                            line-height:1.6;
+                            border:1px solid var(--border);">
+
+                    {{ answer.answer_text }}
+
+                </div>
+
+            </div>
+
+            <!-- FEEDBACK -->
+            <div class="mb-3">
+
+                <div class="text-muted small fw-500 mb-1">
+                    Feedback:
+                </div>
+
+                <p class="mb-0" style="font-size:0.9rem;">
+                    {{ answer.feedback }}
+                </p>
+
+            </div>
+
+            <!-- STRENGTHS & IMPROVEMENTS -->
+            <div class="row g-2 mb-3">
+
+                {% if answer.strengths %}
+                <div class="col-md-6">
+
+                    <div class="small fw-500 mb-1"
+                         style="color:var(--success);">
+
+                        <i class="bi bi-plus-circle me-1"></i>
+                        What you did well
+
+                    </div>
+
+                    <ul class="mb-0 ps-3">
+                        {% for s in answer.strengths_list %}
+                            <li class="small">{{ s }}</li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+                {% endif %}
+
+                {% if answer.improvements %}
+                <div class="col-md-6">
+
+                    <div class="small fw-500 mb-1"
+                         style="color:var(--warning);">
+
+                        <i class="bi bi-arrow-up-circle me-1"></i>
+                        Could be better
+
+                    </div>
+
+                    <ul class="mb-0 ps-3">
+                        {% for i in answer.improvements_list %}
+                            <li class="small">{{ i }}</li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- MODEL ANSWER -->
+            {% if answer.model_answer %}
+            <div class="model-answer">
+
+                <div class="small fw-500 mb-1 text-accent">
+                    <i class="bi bi-stars me-1"></i>
+                    Model Answer
+                </div>
+
+                <p class="mb-0 small" style="line-height:1.7;">
+                    {{ answer.model_answer }}
+                </p>
+
+            </div>
+            {% endif %}
+
+        </div>
+
+        {% endwith %}
+        {% endfor %}
+
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="d-flex gap-3 flex-wrap justify-content-center">
+
+        <a href="{% url 'start_session' session.topic.slug %}"
+           class="btn btn-brand px-4">
+
+            <i class="bi bi-arrow-repeat me-2"></i>
+            Retry {{ session.topic.name }}
+
+        </a>
+
+        <a href="{% url 'topic_list' %}"
+           class="btn btn-outline-brand px-4">
+
+            <i class="bi bi-collection me-2"></i>
+            New Topic
+
+        </a>
+
+        <a href="{% url 'dashboard' %}"
+           class="btn btn-outline-brand px-4">
+
+            <i class="bi bi-grid me-2"></i>
+            Dashboard
+
+        </a>
+
+    </div>
+
+</div>
+{% endblock %}

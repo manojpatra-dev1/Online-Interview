@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Interview — {{ session.topic.name }} — PrepAI{% endblock %}
+{% block extra_css %}
+<style>
+  .question-card { border: 1px solid var(--brand); background: rgba(124,58,237,0.05); }
+  .timer-display { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; color: var(--brand-light); }
+  .timer-display.warning { color: var(--warning); }
+  .timer-display.danger  { color: var(--danger); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .type-badge { font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; }
+  textarea.answer-box { min-height: 200px; resize: vertical; font-size: 0.95rem; line-height: 1.6; }
+  .q-nav-dot { width:10px; height:10px; border-radius:50%; background:var(--dark-4); flex-shrink:0; }
+  .q-nav-dot.done { background: var(--success); }
+  .q-nav-dot.current { background: var(--brand); box-shadow: 0 0 8px var(--brand); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:820px">
+
+  <!-- TOP BAR -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h5 class="mb-0 fw-700">{{ session.topic.name }}</h5>
+      <span class="text-muted small">{{ session.get_difficulty_display }} · Q{{ progress|add:1 }} of {{ total }}</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <!-- PROGRESS DOTS -->
+      <div class="d-flex gap-1 align-items-center">
+        {% for i in session.questions.all %}
+        <div class="q-nav-dot {% if i.order <= progress %}done{% elif i.order == progress|add:1 %}current{% endif %}"></div>
+        {% endfor %}
+      </div>
+      <div class="timer-display" id="timer">00:00</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress mb-4" style="height:6px;">
+    <div class="progress-bar" style="width:{{ progress_percent }}%;transition:width 0.5s;"></div>
+  </div>
+
+  <!-- QUESTION CARD -->
+  <div class="card question-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <span class="badge badge-brand type-badge">{{ question.get_question_type_display }}</span>
+      <span class="text-muted small">Question {{ progress|add:1 }}</span>
+    </div>
+    <h5 class="mb-0" style="line-height:1.6; font-weight:600;">{{ question.question_text }}</h5>
+  </div>
+
+  <!-- ANSWER FORM -->
+  <form method="post" action="{% url 'submit_answer' session.id %}" id="answerForm">
+    {% csrf_token %}
+    <input type="hidden" name="question_id" value="{{ question.id }}">
+    <input type="hidden" name="time_taken" id="timeTaken" value="0">
+
+    <div class="card p-4 mb-4">
+      <label class="form-label fw-500">Your Answer</label>
+      <textarea
+        name="answer_text"
+        class="form-control answer-box"
+        placeholder="Type your answer here. Be as detailed as you can — explain concepts, give examples, and walk through your reasoning..."
+        id="answerText"
+        required
+      ></textarea>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="text-muted small"><span id="charCount">0</span> characters</span>
+        <span class="text-muted small">Tip: Aim for 100+ characters for a thorough answer</span>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 justify-content-between align-items-center">
+      <form method="post" action="{% url 'abandon_session' session.id %}" onsubmit="return confirm('Abandon this session?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm text-danger" style="background:transparent;border:1px solid rgba(239,68,68,0.3);">
+          <i class="bi bi-x-lg me-1"></i>Abandon
+        </button>
+      </form>
+      <button type="submit" class="btn btn-brand px-5 py-2" id="submitBtn">
+        <i class="bi bi-send me-2"></i>
+        {% if progress|add:1 == total %}Submit & Finish{% else %}Submit Answer{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+
+{% block extra_js %}
+<script>
+  // TIMER
+  let seconds = 0;
+  const timerEl = document.getElementById('timer');
+  const timeTakenInput = document.getElementById('timeTaken');
+  const interval = setInterval(() => {
+    seconds++;
+    timeTakenInput.value = seconds;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    timerEl.className = 'timer-display';
+    if (seconds > 120) timerEl.classList.add('warning');
+    if (seconds > 180) timerEl.classList.add('danger');
+  }, 1000);
+
+  // CHAR COUNT
+  const answerText = document.getElementById('answerText');
+  const charCount = document.getElementById('charCount');
+  answerText.addEventListener('input', () => { charCount.textContent = answerText.value.length; });
+
+  // DISABLE SUBMIT ON CLICK
+  document.getElementById('answerForm').addEventListener('submit', function() {
+    clearInterval(interval);
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Evaluating with AI...';
+  });
+</script>
+{% endblock %}
+{% endblock %}

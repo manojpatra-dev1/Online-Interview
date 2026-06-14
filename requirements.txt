@@ -1,0 +1,8 @@
+Django==4.2.13
+mysqlclient==2.2.4
+anthropic==0.25.0
+python-dotenv==1.0.1
+Pillow==10.3.0
+django-crispy-forms==2.1
+crispy-bootstrap5==2023.10
+django-widget-tweaks==1.5.0

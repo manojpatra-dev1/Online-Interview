@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — PrepAI{% endblock %}
+{% block content %}
+<div class="container py-5">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <h3 class="fw-700 mb-1">Good {% now "H" as h %}{% if h < "12" %}Morning{% elif h < "17" %}Afternoon{% else %}Evening{% endif %}, {{ user.first_name|default:user.username }} 👋</h3>
+      <p class="text-muted mb-0">Ready to practice? Pick a topic and get started.</p>
+    </div>
+    <a href="{% url 'topic_list' %}" class="btn btn-brand px-4">
+      <i class="bi bi-plus-lg me-2"></i>New Interview
+    </a>
+  </div>
+
+  <!-- IN-PROGRESS ALERT -->
+  {% if in_progress %}
+  <div class="alert alert-info d-flex align-items-center justify-content-between mb-4">
+    <div><i class="bi bi-clock-history me-2"></i>You have an unfinished <strong>{{ in_progress.topic.name }}</strong> session.</div>
+    <a href="{% url 'interview_session' in_progress.id %}" class="btn btn-sm btn-outline-light">Resume →</a>
+  </div>
+  {% endif %}
+
+  <!-- STATS -->
+  <div class="row g-3 mb-5">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value">{{ total_sessions }}</div>
+        <div class="stat-label">Total Sessions</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value">{{ completed_sessions }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value" style="color:{% if avg_score >= 7 %}var(--success){% elif avg_score >= 5 %}var(--warning){% else %}var(--danger){% endif %}">
+          {{ avg_score }}
+        </div>
+        <div class="stat-label">Avg Score / 10</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value">{{ profile.experience_level|title }}</div>
+        <div class="stat-label">Your Level</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- TOPICS -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-600 mb-0">Practice Topics</h5>
+        <a href="{% url 'topic_list' %}" class="text-muted small">View all <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="row g-3">
+        {% for topic in topics|slice:":8" %}
+        <div class="col-sm-6">
+          <a href="{% url 'start_session' topic.slug %}" class="text-decoration-none">
+            <div class="card p-3 d-flex flex-row align-items-center gap-3 h-100" style="transition:all 0.2s;cursor:pointer;" onmouseover="this.style.borderColor='{{ topic.color }}'" onmouseout="this.style.borderColor=''">
+              <div style="width:44px;height:44px;border-radius:10px;background:{{ topic.color }}20;color:{{ topic.color }};display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+                <i class="bi {{ topic.icon }}"></i>
+              </div>
+              <div class="flex-grow-1 min-w-0">
+                <div class="fw-600 text-truncate" style="color:var(--text);">{{ topic.name }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">{{ topic.get_category_display }}</div>
+              </div>
+              <i class="bi bi-arrow-right text-muted"></i>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+      <!-- RECENT SESSIONS -->
+      <h5 class="fw-600 mb-3">Recent Sessions</h5>
+      {% if recent_sessions %}
+      <div class="d-flex flex-column gap-2">
+        {% for s in recent_sessions %}
+        <div class="card p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-600 small">{{ s.topic.name }}</div>
+              <div class="text-muted" style="font-size:0.75rem;">
+                {{ s.get_difficulty_display }} · {{ s.created_at|date:"M d" }}
+              </div>
+            </div>
+            <div class="text-end">
+              {% if s.overall_score %}
+              <div class="fw-700" style="color:{% if s.overall_score >= 7 %}var(--success){% elif s.overall_score >= 5 %}var(--warning){% else %}var(--danger){% endif %}">
+                {{ s.overall_score }}/10
+              </div>
+              {% endif %}
+              <span class="badge {% if s.status == 'completed' %}badge-accent{% elif s.status == 'in_progress' %}badge-brand{% else %}text-muted{% endif %}" style="font-size:0.65rem;">
+                {{ s.get_status_display }}
+              </span>
+            </div>
+          </div>
+          {% if s.status == 'completed' %}
+          <div class="mt-2">
+            <div class="progress" style="height:4px;">
+              <div class="progress-bar" style="width:{{ s.overall_score|floatformat:0 }}0%"></div>
+            </div>
+          </div>
+          <a href="{% url 'session_results' s.id %}" class="btn btn-sm btn-outline-brand mt-2 w-100" style="font-size:0.75rem;">View Results</a>
+          {% elif s.status == 'in_progress' %}
+          <a href="{% url 'interview_session' s.id %}" class="btn btn-sm btn-brand mt-2 w-100" style="font-size:0.75rem;">Resume →</a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{% url 'session_history' %}" class="btn btn-outline-brand w-100 mt-3">View All History</a>
+      {% else %}
+      <div class="card p-4 text-center">
+        <i class="bi bi-clipboard-check text-muted" style="font-size:2rem;"></i>
+        <p class="text-muted mt-2 mb-3">No sessions yet. Start your first interview!</p>
+        <a href="{% url 'topic_list' %}" class="btn btn-brand btn-sm">Start Now</a>
+      </div>
+      {% endif %}
+
+      <!-- TOP PERFORMANCE -->
+      {% if topic_stats %}
+      <h5 class="fw-600 mt-4 mb-3">Top Performance</h5>
+      <div class="card p-3">
+        {% for t in topic_stats %}
+        <div class="d-flex justify-content-between align-items-center mb-2 {% if not forloop.last %}pb-2 border-bottom border-brand{% endif %}">
+          <div class="small">{{ t.topic__name }}</div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="width:60px;height:6px;">
+              <div class="progress-bar" style="width:{{ t.avg_score|floatformat:0 }}0%"></div>
+            </div>
+            <span class="small fw-600 text-brand">{{ t.avg_score|floatformat:1 }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

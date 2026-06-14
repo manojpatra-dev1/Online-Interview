@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}PrepAI — Ace Your Next Interview{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+  }
+
+  .hero-title .gradient {
+    background: linear-gradient(135deg, #a78bfa, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    max-width: 560px;
+    margin: 1.25rem auto;
+  }
+
+  .feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .step-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <span class="badge badge-brand px-3 py-2 mb-4 fs-6">
+      <i class="bi bi-stars me-1"></i> AI-Powered Mock Interviews
+    </span>
+
+    <h1 class="hero-title">
+      Land Your Dream Job<br>
+      with <span class="gradient">AI Interview Prep</span>
+    </h1>
+
+    <p class="hero-sub">
+      Practice with realistic AI-generated questions, get instant feedback, and track your progress.
+    </p>
+
+    <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
+      <a href="{% url 'register' %}" class="btn btn-brand btn-lg px-5">
+        <i class="bi bi-rocket-takeoff me-2"></i> Start Free
+      </a>
+      <a href="{% url 'login' %}" class="btn btn-outline-brand btn-lg px-4">
+        <i class="bi bi-box-arrow-in-right me-2"></i> Login
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2>Everything You Need to Succeed</h2>
+      <p class="text-muted">Powered by AI</p>
+    </div>
+
+    <div class="row g-4">
+
+      {% for f in features %}
+      <div class="col-md-4">
+        <div class="card h-100 p-4 shadow-sm">
+
+          <div class="feature-icon" style="background:{{ f.color }}20; color:{{ f.color }}">
+            <i class="bi {{ f.icon }}"></i>
+          </div>
+
+          <h5 class="fw-semibold">{{ f.title }}</h5>
+          <p class="text-muted mb-0">{{ f.desc }}</p>
+
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-center text-muted">No features available</p>
+      {% endfor %}
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="py-5">
+  <div class="container" style="max-width:700px">
+    <div class="text-center mb-5">
+      <h2>How It Works</h2>
+    </div>
+
+    <div class="d-flex flex-column gap-4">
+
+      {% for step in steps %}
+      <div class="d-flex align-items-start gap-3">
+        <div class="step-num">{{ step.num }}</div>
+
+        <div>
+          <h6 class="mb-1">{{ step.title }}</h6>
+          <p class="text-muted mb-0">{{ step.desc }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-muted text-center">No steps defined</p>
+      {% endfor %}
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 text-center">
+  <div class="container">
+    <h2>Ready to Ace Your Interview?</h2>
+    <p class="text-muted">Start practicing with AI today</p>
+
+    <a href="{% url 'register' %}" class="btn btn-brand btn-lg mt-3 px-5">
+      <i class="bi bi-rocket-takeoff me-2"></i> Start Practicing Free
+    </a>
+  </div>
+</section>
+
+{% endblock %}
